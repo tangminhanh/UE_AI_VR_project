@@ -16,8 +16,6 @@ _default_clients["IOS_MUSIC"]["context"]["client"]["clientVersion"] = "6.41"
 _default_clients["ANDROID_MUSIC"] = _default_clients["ANDROID_CREATOR"]
 
 # Custom throttling function
-
-
 def get_throttling_function_name(js: str) -> str:
     function_patterns = [
         r'a\.[a-zA-Z]\s*&&\s*\([a-z]\s*=\s*a\.get\("n"\)\)\s*&&\s*'
