@@ -12,20 +12,20 @@ This application allows users to download YouTube videos using a simple graphica
 
 - Python 3.7 or higher
 
-## Run Locally
+## Setup and Run Locally
 
-Clone the project 
+### 1. Clone the project 
 
 ```bash
   git clone https://github.com/tangminhanh/UE_AI_VR_project.git
 ```
-### 1. Set up environment
+### 2. Set up environment
 ##### Creating a Virtual Environment with venv
-1/ To create an environment:
+2.1 To create an environment:
 ```bash
   python3.10 -m venv myenv
 ```
-2/ Activate environment
+2.2 Activate environment
 ##### On macOS and Linux:
 ```bash
   source myenv/bin/activate
@@ -35,9 +35,11 @@ Clone the project
   myenv\Scripts\activate
 ```
 
-Install dependencies
-
+### 3. Install dependencies
 ```bash
   pip install -r requirements.txt
 ```
-### 2. 
+### 4. Run the application
+```bash
+  python test.py
+```
