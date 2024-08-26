@@ -1,83 +1,88 @@
 import tkinter
 import customtkinter
+from tkinter import filedialog
 from pytube import YouTube
-from typing import Literal
-import os
+from pytube.exceptions import RegexMatchError
+from pytube.innertube import _default_clients
+from pytube import cipher
+import re
 
-def on_progress(stream, chunk, bytes_remaining):
-    total_size = stream.filesize
-    bytes_downloaded = total_size - bytes_remaining
-    percentage = (bytes_downloaded / total_size) * 100
-    print(f'{percentage:.2f}% downloaded')
+# Fix for client version issues
+_default_clients["ANDROID"]["context"]["client"]["clientVersion"] = "19.08.35"
+_default_clients["IOS"]["context"]["client"]["clientVersion"] = "19.08.35"
+_default_clients["ANDROID_EMBED"]["context"]["client"]["clientVersion"] = "19.08.35"
+_default_clients["IOS_EMBED"]["context"]["client"]["clientVersion"] = "19.08.35"
+_default_clients["IOS_MUSIC"]["context"]["client"]["clientVersion"] = "6.41"
+_default_clients["ANDROID_MUSIC"] = _default_clients["ANDROID_CREATOR"]
+
+# Custom throttling function
 
 
-def merge_audio(video_with_audio, new_audio, output_video):
-    import subprocess
-    # Combine the new audio with the video
-    merge_cmd = f"ffmpeg -y -i '{video_with_audio}' -i '{new_audio}' -c:v copy -map 0:v:0 -map 1:a:0 -shortest '{output_video}'"
-    subprocess.call(merge_cmd, shell=True)
+def get_throttling_function_name(js: str) -> str:
+    function_patterns = [
+        r'a\.[a-zA-Z]\s*&&\s*\([a-z]\s*=\s*a\.get\("n"\)\)\s*&&\s*'
+        r'\([a-z]\s*=\s*([a-zA-Z0-9$]+)(\[\d+\])?\([a-z]\)',
+        r'\([a-z]\s*=\s*([a-zA-Z0-9$]+)(\[\d+\])\([a-z]\)',
+    ]
+    for pattern in function_patterns:
+        regex = re.compile(pattern)
+        function_match = regex.search(js)
+        if function_match:
+            if len(function_match.groups()) == 1:
+                return function_match.group(1)
+            idx = function_match.group(2)
+            if idx:
+                idx = idx.strip("[]")
+                array = re.search(
+                    r'var {nfunc}\s*=\s*(\[.+?\]);'.format(
+                        nfunc=re.escape(function_match.group(1))),
+                    js
+                )
+                if array:
+                    array = array.group(1).strip("[]").split(",")
+                    array = [x.strip() for x in array]
+                    return array[int(idx)]
+
+    raise RegexMatchError(
+        caller="get_throttling_function_name", pattern="multiple"
+    )
+
+
+cipher.get_throttling_function_name = get_throttling_function_name
+
+# Function to download YouTube video
 
 
 def downloadVid():
-    url = link.get()
-    resolution = "highest-available"  # Change this based on user input if needed
-    include_audio = True  # Change this based on user input if needed
+    try:
+        ytLink = link.get()
+        ytObject = YouTube(ytLink)
+        video = ytObject.streams.get_highest_resolution()
+        video = ytObject.streams.filter(progressive=True, file_extension='mp4')\
+                                .order_by('resolution')\
+                                .desc()\
+                                .first()
 
-    video_filename = "video.mp4"
-    audio_filename = "audio.mp3"
+        # Open a file dialog to select a save location
+        save_path = filedialog.askdirectory()
+        if not save_path:
+            print("Download canceled.")
+            return
 
-    if os.path.exists(video_filename):
-        print("Deleting temp video file...")
-        os.remove(video_filename)
-
-    if os.path.exists(audio_filename):
-        print("Deleting temp audio file...")
-        os.remove(audio_filename)
-
-    print("Setting stream...")
-    yt = YouTube(url)
-    yt.register_on_progress_callback(on_progress)
-
-    # Filter streams by resolution and format
-    video = yt.streams.filter(
-        progressive=False, file_extension='mp4').order_by('resolution').desc()
-
-    if resolution == "highest-available":
-        video = video.first()
-        print(f"Highest available resolution is {video.resolution}...")
-    elif resolution == "lowest-available":
-        video = video.last()
-        print(f"Lowest available resolution is {video.resolution}...")
-    else:
-        desired_res = int(resolution.replace('p', ''))
-        diff_list = [(abs(desired_res - int(stream.resolution.replace('p', ''))), stream)
-                     for stream in video]
-        diff_list.sort(key=lambda x: x[0])
-        video = diff_list[0][1]
-        if video.resolution != resolution:
-            print(
-                f"{resolution} resolution is not available, using {video.resolution} instead...")
+        if video:
+            video.download(output_path=save_path)
+            print(f"Download complete! Video saved to: {save_path}")
         else:
-            print(f"Selected resolution is {resolution}...")
-
-    print('Downloading video...')
-    video.download(filename=video_filename)
-
-    if include_audio:
-        print('Downloading audio...')
-        audios = yt.streams.filter(
-            only_audio=True).order_by('abr').desc().first()
-        audios.download(filename=audio_filename)
-        print('Merging audio...')
-        merge_audio(video_filename, audio_filename, "output.mp4")
-        print('Done! Video saved as output.mp4')
-    else:
-        print('Done! Video saved as video.mp4')
+            print("No suitable video stream found.")
+    except RegexMatchError:
+        print("Invalid YouTube link. Please check the URL.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 
 # System settings
 customtkinter.set_appearance_mode("system")
-customtkinter.set_default_color_theme("blue")
+customtkinter.set_default_color_theme("dark-blue")
 
 # App frame
 app = customtkinter.CTk()
