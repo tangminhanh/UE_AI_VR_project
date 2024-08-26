@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>YouTube Downloader</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f4f4f4;
+                text-align: center;
+                padding: 50px;
+            }
+
+            form {
+                display: inline-block;
+                margin-top: 20px;
+            }
+
+            input[type="text"] {
+                width: 300px;
+                height: 30px;
+                padding: 5px;
+            }
+
+            button {
+                height: 40px;
+                padding: 5px 20px;
+                background-color: #007bff;
+                color: white;
+                border: none;
+                cursor: pointer;
+            }
+
+            button:hover {
+                background-color: #0056b3;
+            }
+        </style>
+    </head>
+
+    <body>
+        <h1>YouTube Downloader</h1>
+        <p>Insert a YouTube link to download the video.</p>
+        <form method="POST">
+            <input type="text" name="link" placeholder="Enter YouTube link" required>
+            <button type="submit">Download</button>
+        </form>
+    </body>
+
+</html>
