@@ -17,7 +17,7 @@ This application allows users to download YouTube videos using a simple graphica
 ### 1. Clone the project 
 
 ```bash
-  git clone https://github.com/tangminhanh/UE_AI_VR_project.git
+  git clone https://github.com/tangminhanh/youtube-downloader.git
 ```
 ### 2. Set up environment
 ##### Creating a Virtual Environment with venv
